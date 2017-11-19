@@ -72,29 +72,41 @@ function isObject(a) {
 
 function pressedKey(event) {
 	//console.log(event)
-	let player = players[0];
+	let player_right = 1 - players[1].isAI, mirror = (player_right === 1 ? -1 : 1);
 	if (event.code === "KeyS") {
-		player.selectedLane++;
-		if (player.selectedLane > 7) player.selectedLane = 0;
-		/*if (event.shiftKey) {
-			redo()
-		}*/
+		players[0].selectedLane++;
+		if (players[0].selectedLane > 7) players[0].selectedLane = 0;
 	} else if (event.code === "KeyW") {
-		player.selectedLane--;
-		if (player.selectedLane < 0) player.selectedLane = 7;
+		players[0].selectedLane--;
+		if (players[0].selectedLane < 0) players[0].selectedLane = 7;
 	} else if (event.code === "KeyA") {
-		player.selectedUnit--;
-		if (player.selectedUnit < 0) player.selectedUnit = player.allUnits.length - 1;
+		players[0].selectedUnit--;
+		if (players[0].selectedUnit < 0) players[0].selectedUnit = players[0].allUnits.length - 1;
 	} else if (event.code === "KeyD") {
-		player.selectedUnit++;
-		if (player.selectedUnit >= player.allUnits.length) player.selectedUnit = 0;
-	}/*else if (event.code === "Escape") {
-		pickingPoint = undefined;
-		pickingFrame = undefined;
-	}*/
-	/*var e = event.which || event.keyCode;
-	if (e===82) { //r
-		;
+		players[0].selectedUnit++;
+		if (players[0].selectedUnit >= players[0].allUnits.length) players[0].selectedUnit = 0;
+	} else if (event.key === "ArrowDown") {
+		players[player_right].selectedLane++;
+		if (players[player_right].selectedLane > 7) players[player_right].selectedLane = 0;
+	} else if (event.key === "ArrowUp") {
+		players[player_right].selectedLane--;
+		if (players[player_right].selectedLane < 0) players[player_right].selectedLane = 7;
+	} else if (event.key === "ArrowLeft") {
+		players[player_right].selectedUnit -= mirror;
+		if (players[player_right].selectedUnit >= players[player_right].allUnits.length) {
+			players[player_right].selectedUnit = 0;
+		} else if (players[player_right].selectedUnit < 0) {
+			players[player_right].selectedUnit = players[player_right].allUnits.length - 1;
+		}
+	} else if (event.key === "ArrowRight") {
+		players[player_right].selectedUnit += mirror;
+		if (players[player_right].selectedUnit >= players[player_right].allUnits.length) {
+			players[player_right].selectedUnit = 0;
+		} else if (players[player_right].selectedUnit < 0) {
+			players[player_right].selectedUnit = players[player_right].allUnits.length - 1;
+		}
+	} /*else {
+		console.log(event);
 	}*/
 }
 
@@ -202,7 +214,7 @@ class Unit {
 		this.health -= amount;
 		if (this.health < 0) {
 			remove(players[this.side].lanes[this.lane_id], this);
-			players[this.side].chargeProgress += 1;
+			players[1 - this.side].chargeProgress += 1;
 		}
 	}
 	tick() {
@@ -302,10 +314,10 @@ class Player {
 		this.selectedUnit = 0;
 		this.chargeProgress = 0;
 		this.allUnits = [
-			{"img_info":pikeman, "cooldown":80, "speed":30, "attacks":[{"type":"thrust", "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
-			{"img_info":poleaxer, "cooldown":180, "speed":15, "attacks":[{"type":"cut", "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
-			{"img_info":bardicher, "cooldown":120, "speed":20, "preferredRange":550, "attacks":[{"type":"thrust", "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
-			{"img_info":archer, "cooldown":120, "speed":15, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
+			{"img_info":pikeman, "cooldown":80, "speed":15, "attacks":[{"type":"thrust", "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
+			{"img_info":poleaxer, "cooldown":180, "speed":7, "attacks":[{"type":"cut", "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
+			{"img_info":bardicher, "cooldown":120, "speed":10, "preferredRange":550, "attacks":[{"type":"thrust", "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
+			{"img_info":archer, "cooldown":120, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
 		];
 	}
 	doAI() {
@@ -322,6 +334,7 @@ class Player {
 }
 
 players = [new Player(0), new Player(1)];
+winner = undefined;
 /*for (lane_id = 0; lane_id < 8; lane_id++) {
 	//bardiche
 	players[0].lanes[lane_id].push(new Unit(0, lane_id, 0, 20, 800, poleaxer))
@@ -363,6 +376,26 @@ function tickGame() {
 			player.doAI();
 		}
 	}
+	if (invasionProgress >= 100) {
+		winner = 0;
+	} else if (invasionProgress <= 0) {
+		winner = 1;
+	}
+	if (winner !== undefined) {
+		let loser_ = players[1 - winner];
+		let winner_ = players[winner];
+		for (let lane_id = 0; lane_id < 8; lane_id++) {
+			let lanel = loser_.lanes[lane_id].splice(0);
+			let lanew = winner_.lanes[lane_id];
+			for (let unit_id = lanel.length - 1; unit_id >= 0; unit_id--) {
+				let unit = lanel[unit_id];
+				unit.x = FIELD_WIDTH - unit.x;
+				unit.side = winner;
+				lanew.push(unit);
+			}
+			
+		}
+	}
 }
 
 
@@ -379,11 +412,11 @@ function drawBattle() {
 	drawRectangle(gctx, 0, HORIZON_HEIGHT, gameScreen.width, gameScreen.height, "#4aa02c")
 	drawLine(gctx, 0, gameScreen.height, MAX_X_CHANGE, HORIZON_HEIGHT, "yellow");
 	drawLine(gctx, gameScreen.width, gameScreen.height, gameScreen.width - MAX_X_CHANGE, HORIZON_HEIGHT, "yellow");
-	let coords = getRenderCoords(0, players[0].selectedLane, 0);
-	let x = coords[0], y = coords[1], z = coords[2];
-	gctx.drawImage(arrow.img, 0, 0, arrow.fw, arrow.fh, x, y - 60 + 20 * z, arrow.fw * (1.0 - 0.4 * (1.0-z)), arrow.fh * (1.0 - 0.4 * (1.0-z)));
 	for (let side = 0; side < 2; side++) {
 		let player = players[side];
+		let arrow_coords = getRenderCoords(side, player.selectedLane, 0);
+		let arrow_x = arrow_coords[0], arrow_y = arrow_coords[1], arrow_z = arrow_coords[2], mirror = (side === 1 ? -1 : 1);
+		gctx.drawImage(arrow.img, side * arrow.fw, 0, arrow.fw, arrow.fh, arrow_x, arrow_y - 60 + 20 * arrow_z, mirror * arrow.fw * (1.0 - 0.4 * (1.0-arrow_z)), arrow.fh * (1.0 - 0.4 * (1.0-arrow_z)));
 		for (let lane_id = 0; lane_id < 8; lane_id++) {
 			let lane = player.lanes[lane_id];
 			for (let unit_id = 0; unit_id < lane.length; unit_id++) {
@@ -406,8 +439,9 @@ function drawUI() {
 	let y = 0;
 	for (let side = 0; side < 2; side++) {
 		let x = 0;
-		for (let i = 0; i < players[side].allUnits.length; i++) {
-			let unit = players[side].allUnits[i];
+		let player = players[side];
+		for (let i = 0; i < player.allUnits.length; i++) {
+			let unit = player.allUnits[i];
 			let ii = unit.img_info;
 			let x_ = x, sy = 0, sx = 0;
 			if (side === 1) {
@@ -415,10 +449,15 @@ function drawUI() {
 				sy = ii.fh;
 				sx = (ii.totalFrames - 1) * ii.fw - sx;
 			}
-			if (players[side].selectedUnit === i) drawRectangle(gctx, x_, y, ii.fw, ii.fh, "yellow", true);
+			drawRectangle(gctx, x_, y + ii.fh, ii.fw, -ii.fh * player.cooldown / unit.cooldown, "#00000041");
+			if (player.selectedUnit === i) drawRectangle(gctx, x_, y, ii.fw, ii.fh, "yellow", true);
 			gctx.drawImage(ii.img, sx, sy, ii.fw, ii.fh, x_, y, ii.fw, ii.fh);
 			x += ii.fw;
 		}
+	}
+	if (winner !== undefined) {
+		let wintext = winner === 1 ? "You Lose" : "You Win";
+		drawText(gctx, gameScreen.width/2, gameScreen.height/2, wintext, "white", 150);
 	}
 }
 
@@ -482,6 +521,13 @@ function drawRectangle(ctx, x, y, w, h, color, hollow) {
 	} else {
 		ctx.fillRect(x,y,w,h);
 	}
+}
+
+function drawText(ctx, x, y, text, color, size, align) {
+	ctx.font = size + "px arial"; 
+	ctx.fillStyle = color;
+	ctx.textAlign = align || "center";
+	ctx.fillText(text, x, y); 
 }
 
 
