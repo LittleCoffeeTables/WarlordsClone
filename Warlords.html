@@ -4,7 +4,7 @@
 	<title>Clone of Ben Olding's Warlords</title>
 </head>
 <!--<body onmousemove="mouseMove(event)" onmousedown="mouseDown()" onmouseup="mouseUp()" onkeydown="pressedKey(event)">-->
-<body onkeypress="pressedKey(event)">
+<body onkeypress="pressedKey(event)" style="background-color: #232323;">
 
 <img id="pikeman" style="display: none;" src="pikeman2.png">
 <img id="poleaxer" style="display: none;" src="poleaxer.png">
@@ -16,6 +16,76 @@
 <div>
 	<canvas id="gameScreen" width="1000" height="570" onmousedown="mouseDownCanvas(event)" onmousemove="mouseMoveCanvas(event)" onmouseup="mouseUpCanvas(event)" oncontextmenu="contextMenuCanvas(event)" />
 </div>
+<canvas id="c1" width="1000" height="570" style="display: none;" />
+<canvas id="c2" width="1000" height="570" style="display: none;" />
+<canvas id="c3" width="1000" height="570" style="display: none;" />
+<canvas id="c4" width="1000" height="570" style="display: none;" />
+<canvas id="c5" width="1000" height="570" style="display: none;" />
+<canvas id="c6" width="1000" height="570" style="display: none;" />
+<canvas id="c7" width="1000" height="570" style="display: none;" />
+<canvas id="c8" width="1000" height="570" style="display: none;" />
+<canvas id="c9" width="1000" height="570" style="display: none;" />
+<canvas id="c10" width="1000" height="570" style="display: none;" />
+<canvas id="c11" width="1000" height="570" style="display: none;" />
+<canvas id="c12" width="1000" height="570" style="display: none;" />
+<canvas id="c13" width="1000" height="570" style="display: none;" />
+<canvas id="c14" width="1000" height="570" style="display: none;" />
+<canvas id="c15" width="1000" height="570" style="display: none;" />
+<canvas id="c16" width="1000" height="570" style="display: none;" />
+<canvas id="c17" width="1000" height="570" style="display: none;" />
+<canvas id="c18" width="1000" height="570" style="display: none;" />
+<canvas id="c19" width="1000" height="570" style="display: none;" />
+<canvas id="c20" width="1000" height="570" style="display: none;" />
+<canvas id="c21" width="1000" height="570" style="display: none;" />
+<canvas id="c22" width="1000" height="570" style="display: none;" />
+<canvas id="c23" width="1000" height="570" style="display: none;" />
+<canvas id="c24" width="1000" height="570" style="display: none;" />
+<canvas id="c25" width="1000" height="570" style="display: none;" />
+<canvas id="c26" width="1000" height="570" style="display: none;" />
+<canvas id="c27" width="1000" height="570" style="display: none;" />
+<canvas id="c28" width="1000" height="570" style="display: none;" />
+<canvas id="c29" width="1000" height="570" style="display: none;" />
+<canvas id="c30" width="1000" height="570" style="display: none;" />
+<canvas id="c31" width="1000" height="570" style="display: none;" />
+<canvas id="c32" width="1000" height="570" style="display: none;" />
+<canvas id="c33" width="1000" height="570" style="display: none;" />
+
+
+<img id="map" style="display: none;" src="map/map.png">
+<img id="area1" style="display: none;" src="map/area1.png">
+<img id="area2" style="display: none;" src="map/area2.png">
+<img id="area3" style="display: none;" src="map/area3.png">
+<img id="area4" style="display: none;" src="map/area4.png">
+<img id="area5" style="display: none;" src="map/area5.png">
+<img id="area6" style="display: none;" src="map/area6.png">
+<img id="area7" style="display: none;" src="map/area7.png">
+<img id="area8" style="display: none;" src="map/area8.png">
+<img id="area9" style="display: none;" src="map/area9.png">
+<img id="area10" style="display: none;" src="map/area10.png">
+<img id="area11" style="display: none;" src="map/area11.png">
+<img id="area12" style="display: none;" src="map/area12.png">
+<img id="area13" style="display: none;" src="map/area13.png">
+<img id="area14" style="display: none;" src="map/area14.png">
+<img id="area15" style="display: none;" src="map/area15.png">
+<img id="area16" style="display: none;" src="map/area16.png">
+<img id="area17" style="display: none;" src="map/area17.png">
+<img id="area18" style="display: none;" src="map/area18.png">
+<img id="area19" style="display: none;" src="map/area19.png">
+<img id="area20" style="display: none;" src="map/area20.png">
+<img id="area21" style="display: none;" src="map/area21.png">
+<img id="area22" style="display: none;" src="map/area22.png">
+<img id="area23" style="display: none;" src="map/area23.png">
+<img id="area24" style="display: none;" src="map/area24.png">
+<img id="area25" style="display: none;" src="map/area25.png">
+<img id="area26" style="display: none;" src="map/area26.png">
+<img id="area27" style="display: none;" src="map/area27.png">
+<img id="area28" style="display: none;" src="map/area28.png">
+<img id="area29" style="display: none;" src="map/area29.png">
+<img id="area30" style="display: none;" src="map/area30.png">
+<img id="area31" style="display: none;" src="map/area31.png">
+<img id="area32" style="display: none;" src="map/area32.png">
+<img id="area33" style="display: none;" src="map/area33.png">
+
 
 </body>
 <style id="theStyle" type="text/css">
@@ -30,10 +100,12 @@
 
 var gameScreen = document.getElementById("gameScreen");
 var gctx = gameScreen.getContext("2d");
+var hoveredArea = undefined;
 
 var mouseDownPos = undefined;
 var heldButtons = 0;
-var invasionProgress = 50;
+var players, invasionProgress, winner;
+var gameState, races, playerRaces, invadableAreas;
 
 //total pixel change in starting x over all 8 lanes
 const MAX_X_CHANGE = 150;
@@ -48,11 +120,36 @@ const bardicher = {"img":document.getElementById("bardicher"), "fw":100, "fh":10
 const archer = {"img":document.getElementById("archer"), "fw":100, "fh":100, "attackFrame":4, "frames":8, "totalFrames":11};
 
 const arrow = {"img":document.getElementById("arrow"), "fw":88, "fh":61};
+const map_img = {"img":document.getElementById("map"), "fw":1000, "fh":570};
+
+
+const adjacent_areas = {
+	1:[2,12,13], 2:[1,3,7,11,12], 3:[2,4,6,7], 4:[3,5,6], 5:[4,6,8,14], 6:[3,4,5,7,8],
+	7:[2,3,6,8,9,11], 8:[5,6,7,9,22], 9:[7,8,10,11,23], 10:[9,11,24], 11:[2,7,9,10,12],
+	12:[1,2,11,13], 13:[1,12], 14:[5,15,20,21,22], 15:[14,16,19,20], 16:[15,17,18,19],
+	17:[16,18,32], 18:[16,17,19,32], 19:[15,16,18,20,32,33], 20:[14,15,19,21,29,33],
+	21:[14,20,22,23,28,29], 22:[8,14,21,23], 23:[9,21,22,24,28], 24:[10,23,25,28],
+	25:[24,26,27,28], 26:[25,27,31], 27:[25,26,28,30,31], 28:[21,23,24,25,27,29,30],
+	29:[20,21,28,30,31,32,33], 30:[27,28,29,31], 31:[26,27,29,30,32], 32:[17,18,19,29,31,33],
+	33:[19,20,29,32]
+}
+const area_centres = {
+	1:[65,400], 2:[230,425], 3:[290,350], 4:[345,235], 5:[475,230], 6:[410,290], 7:[390,390],
+	8:[490,350], 9:[475,460], 10:[495,540], 11:[315,535], 12:[160,495], 13:[50,540], 14:[620,170],
+	15:[725,75], 16:[840,55], 17:[960,75], 18:[910,135], 19:[825,175], 20:[735,190], 21:[695,290],
+	22:[615,305], 23:[625,420], 24:[640,520], 25:[785,545], 26:[950,530], 27:[860,475], 28:[745,445],
+	29:[790,305], 30:[875,380], 31:[980,370], 32:[945,230], 33:[825,245]
+}
+
+
+
 
 
 window.onload = function() {
 	//blarg
+	initGame();
 	window.setInterval(drawGame, 1000/30);
+	//drawGame()
 }
 
 function remove(array, item) {
@@ -72,42 +169,54 @@ function isObject(a) {
 
 function pressedKey(event) {
 	//console.log(event)
-	let player_right = 1 - players[1].isAI, mirror = (player_right === 1 ? -1 : 1);
-	if (event.code === "KeyS") {
-		players[0].selectedLane++;
-		if (players[0].selectedLane > 7) players[0].selectedLane = 0;
-	} else if (event.code === "KeyW") {
-		players[0].selectedLane--;
-		if (players[0].selectedLane < 0) players[0].selectedLane = 7;
-	} else if (event.code === "KeyA") {
-		players[0].selectedUnit--;
-		if (players[0].selectedUnit < 0) players[0].selectedUnit = players[0].allUnits.length - 1;
-	} else if (event.code === "KeyD") {
-		players[0].selectedUnit++;
-		if (players[0].selectedUnit >= players[0].allUnits.length) players[0].selectedUnit = 0;
-	} else if (event.key === "ArrowDown") {
-		players[player_right].selectedLane++;
-		if (players[player_right].selectedLane > 7) players[player_right].selectedLane = 0;
-	} else if (event.key === "ArrowUp") {
-		players[player_right].selectedLane--;
-		if (players[player_right].selectedLane < 0) players[player_right].selectedLane = 7;
-	} else if (event.key === "ArrowLeft") {
-		players[player_right].selectedUnit -= mirror;
-		if (players[player_right].selectedUnit >= players[player_right].allUnits.length) {
-			players[player_right].selectedUnit = 0;
-		} else if (players[player_right].selectedUnit < 0) {
-			players[player_right].selectedUnit = players[player_right].allUnits.length - 1;
+	if (gameState === "battle") {
+		let player_right = 1 - players[1].isAI, mirror = (player_right === 1 ? -1 : 1);
+		if (event.code === "KeyS") {
+			players[0].selectedLane++;
+			if (players[0].selectedLane > 7) players[0].selectedLane = 0;
+		} else if (event.code === "KeyW") {
+			players[0].selectedLane--;
+			if (players[0].selectedLane < 0) players[0].selectedLane = 7;
+		} else if (event.code === "KeyA") {
+			players[0].selectedUnit--;
+			if (players[0].selectedUnit < 0) players[0].selectedUnit = players[0].allUnits.length - 1;
+		} else if (event.code === "KeyD") {
+			players[0].selectedUnit++;
+			if (players[0].selectedUnit >= players[0].allUnits.length) players[0].selectedUnit = 0;
+		} else if (event.key === "ArrowDown") {
+			players[player_right].selectedLane++;
+			if (players[player_right].selectedLane > 7) players[player_right].selectedLane = 0;
+		} else if (event.key === "ArrowUp") {
+			players[player_right].selectedLane--;
+			if (players[player_right].selectedLane < 0) players[player_right].selectedLane = 7;
+		} else if (event.key === "ArrowLeft") {
+			players[player_right].selectedUnit -= mirror;
+			if (players[player_right].selectedUnit >= players[player_right].allUnits.length) {
+				players[player_right].selectedUnit = 0;
+			} else if (players[player_right].selectedUnit < 0) {
+				players[player_right].selectedUnit = players[player_right].allUnits.length - 1;
+			}
+		} else if (event.key === "ArrowRight") {
+			players[player_right].selectedUnit += mirror;
+			if (players[player_right].selectedUnit >= players[player_right].allUnits.length) {
+				players[player_right].selectedUnit = 0;
+			} else if (players[player_right].selectedUnit < 0) {
+				players[player_right].selectedUnit = players[player_right].allUnits.length - 1;
+			}
+		} /*else {
+			console.log(event);
+		}*/
+	} else if (gameState === "race_selector") {
+		if (event.code === "KeyA" || event.key === "ArrowLeft") {
+			playerRaces[0]--;
+			if (playerRaces[0] < 0) playerRaces[0] = races.length;
+		} else if (event.code === "KeyD" || event.key === "ArrowRight") {
+			playerRaces[0]++;
+			if (playerRaces[0] >= races.length) playerRaces[0] = 0;
+		} else if (event.key === "Enter") {
+			initMap();
 		}
-	} else if (event.key === "ArrowRight") {
-		players[player_right].selectedUnit += mirror;
-		if (players[player_right].selectedUnit >= players[player_right].allUnits.length) {
-			players[player_right].selectedUnit = 0;
-		} else if (players[player_right].selectedUnit < 0) {
-			players[player_right].selectedUnit = players[player_right].allUnits.length - 1;
-		}
-	} /*else {
-		console.log(event);
-	}*/
+	}
 }
 
 function getMousePos(event) {
@@ -333,8 +442,8 @@ class Player {
 	}
 }
 
-players = [new Player(0), new Player(1)];
-winner = undefined;
+
+
 /*for (lane_id = 0; lane_id < 8; lane_id++) {
 	//bardiche
 	players[0].lanes[lane_id].push(new Unit(0, lane_id, 0, 20, 800, poleaxer))
@@ -399,10 +508,110 @@ function tickGame() {
 }
 
 
+function initMatch() {
+	players = [new Player(0), new Player(1)];
+	invasionProgress = 50;
+	winner = undefined;
+	gameState = "battle";
+}
+
+function initGame() {
+	gameState = "race_selector";
+	races = [
+		new Race("Seagull People", "#f2ea6c", [14,15,16]),
+		new Race("Pink Orcs", "#c954d3", [6,7,8]),
+		new Race("Humans", "#411ef0", [19,20,33]),
+		new Race("Cave Trolls", "#1f6460", [29,30,31]),
+		new Race("Mountain Trolls", "#47c6bf", [25,26,27]),
+		new Race("River Orcs", "#f6267e", [21,22,28]),
+		new Race("Frog People", "#1bbd6b", [10,23,24]),
+		new Race("Plant People", "#417721", [9,11,12]),
+		new Race("Demons", "#d40c40", [17,18,32]),
+		new Race("Fish People", "#2cb1e2", [3,4,5]),
+		new Race("Lizardmen", "#db9930", [1,2,13])
+	];
+	let w = map_img.fw, h = map_img.fh;
+	for (let race_id = 0; race_id < races.length; race_id++) {
+		let race = races[race_id];
+		for (let i = 0; i < race.areas.length; i++) {
+			let area_id = race.areas[i];
+			let area = document.getElementById("area"+area_id);
+			let canvas = document.getElementById("c"+area_id);
+			let ctx = canvas.getContext("2d");
+			ctx.globalCompositeOperation = "source-over";
+			ctx.drawImage(area, 0, 0, w, h);
+			ctx.globalCompositeOperation = "source-in";
+			drawRectangle(ctx, 0, 0, w, h, race.colour);
+		}
+	}
+	playerRaces = [2];
+}
+
+function initMap() {
+	let race = races[playerRaces];
+	invadableAreas = {};
+	for (let i = 0; i < race.areas.length; i++) {
+		let area_id = race.areas[i], centre = area_centres[area_id];
+		let adjs = adjacent_areas[area_id];
+		for (let adjacent = 0; adjacent < adjs.length; adjacent++) {
+			let other_area_id = adjs[adjacent];
+			if (race.areas.indexOf(other_area_id) === -1) {
+				let other_centre = area_centres[other_area_id];
+				let distance = DBP(centre[0], centre[1], other_centre[0], other_centre[1]);
+				if (invadableAreas[other_area_id] === undefined || invadableAreas[other_area_id][1] > distance) {
+					invadableAreas[other_area_id] = [area_id, distance];
+				}
+			}
+		}
+	}
+	gameState = "map";
+}
+
+
+class Race {
+	constructor(name, colour, areas) {
+		this.name = name;
+		this.colour = colour;
+		this.areas = areas;
+	}
+}
+
+
 function drawGame() {
-	tickGame();
-	drawBattle();
-	drawUI();
+	if (gameState === "battle") {
+		tickGame();
+		drawBattle();
+		drawUI();
+	} else if (gameState === "map") {
+		drawMap();
+	} else if (gameState === "race_selector") {
+		drawSelector();
+	}
+}
+
+
+function drawSelector() {
+	drawRectangle(gctx, gameScreen.width/3, gameScreen.height/3, gameScreen.width/3, gameScreen.height/3, races[playerRaces[0]].colour);
+}
+
+
+function drawMap() {
+	let w = map_img.fw, h = map_img.fh;
+	gctx.drawImage(map_img.img, 0, 0);
+	for (let area_id = 1; area_id < 34; area_id++) {
+		let area = document.getElementById("c"+area_id);
+		//console.log(area, "area"+area_id);
+		if (area_id === hoveredArea) gctx.globalAlpha = 0.7;
+		gctx.drawImage(area, 0, 0);
+		gctx.globalAlpha = 1.0;
+	}
+	for (let area_id = 1; area_id < 34; area_id++) {
+		if (invadableAreas[area_id] !== undefined) {
+			let centre = area_centres[area_id];
+			let other_centre = area_centres[invadableAreas[area_id][0]];
+			drawLine(gctx, centre[0], centre[1], other_centre[0], other_centre[1], "black");
+		}
+	}
 }
 
 
@@ -434,8 +643,8 @@ function drawBattle() {
 
 
 function drawUI() {
-	drawRectangle(gctx, 0, 0, gameScreen.width, 10, "red");
-	drawRectangle(gctx, 0, 0, invasionProgress / 100 * gameScreen.width, 10, "green");
+	drawRectangle(gctx, 0, 0, gameScreen.width, 10, races[playerRaces[1]].colour);
+	drawRectangle(gctx, 0, 0, invasionProgress / 100 * gameScreen.width, 10, races[playerRaces[0]].colour);
 	let y = 0;
 	for (let side = 0; side < 2; side++) {
 		let x = 0;
@@ -449,10 +658,11 @@ function drawUI() {
 				sy = ii.fh;
 				sx = (ii.totalFrames - 1) * ii.fw - sx;
 			}
-			drawRectangle(gctx, x_, y + ii.fh, ii.fw, -ii.fh * player.cooldown / unit.cooldown, "#00000041");
-			if (player.selectedUnit === i) drawRectangle(gctx, x_, y, ii.fw, ii.fh, "yellow", true);
-			gctx.drawImage(ii.img, sx, sy, ii.fw, ii.fh, x_, y, ii.fw, ii.fh);
-			x += ii.fw;
+			let w = ii.fw * 0.5, h = ii.fh * 0.5;
+			drawRectangle(gctx, x_, y + h, w, -h * player.cooldown / unit.cooldown, "#00000041");
+			if (player.selectedUnit === i) drawRectangle(gctx, x_, y, w, h, "yellow", true);
+			gctx.drawImage(ii.img, sx, sy, ii.fw, ii.fh, x_, y, w, h);
+			x += w;
 		}
 	}
 	if (winner !== undefined) {
@@ -461,8 +671,39 @@ function drawUI() {
 	}
 }
 
+function getAreaOwnerId(area_id) {
+	for (let race_id = 0; race_id < races.length; race_id++) {
+		let race = races[race_id];
+		for (let i = 0; i < race.areas.length; i++) {
+			if (race.areas[i] === area_id) {
+				return race_id;
+			}
+		}
+	}
+}
+
+function getClickedArea(pos) {
+	let w = map_img.fw, h = map_img.fh;
+	for (let area_id = 1; area_id < 34; area_id++) {
+		let area = document.getElementById("c"+area_id);
+		let ctx = area.getContext("2d");
+		let data = ctx.getImageData(pos[0], pos[1], 1,1).data;
+		if (data[3] !== 0) return area_id;
+	}
+}
+
 
 function mouseUpCanvas(event) {
+	let pos = getMousePos(event);
+	if (gameState === "map") {
+		let clickedArea = getClickedArea(pos);
+		//console.log(clickedArea);
+		if (invadableAreas[clickedArea] !== undefined) {
+			playerRaces.push(getAreaOwnerId(clickedArea));
+			initMatch();
+		}
+	}
+	//
 	heldButtons = event.buttons;
 }
 
@@ -470,14 +711,8 @@ function mouseMoveCanvas(event) {
 	heldButtons = event.buttons;
 	if (event.target.id === "gameScreen") {
 		let pos = getMousePos(event);
-		if (event.shiftKey || event.ctrlKey) {
-			;
-		} else {
-			if (event.buttons === 1) {
-				//paintAt(pos);
-			} else if (event.buttons === 2) {
-				//paintAt(pos, true);
-			}
+		if (gameState === "map") {
+			hoveredArea = getClickedArea(pos);
 		}
 	}
 }
@@ -486,15 +721,8 @@ function mouseDownCanvas(event) {
 	heldButtons = event.buttons;
 	if (event.target.id === "gameScreen") {
 		let pos = getMousePos(event);
-		if (event.shiftKey || event.ctrlKey) {
-			mouseDownPos = pos;
-		} else {
-			if (event.buttons === 1) {
-				//paintAt(pos);
-			} else if (event.buttons === 2) {
-				//paintAt(pos, true);
-			}
-		}
+		//maybe save the id of the area that was clicked on
+		//mouseDownPos = pos;
 	}
 }
 
@@ -536,7 +764,8 @@ function DBP(x1,y1,x2,y2) {
 }
 
 
-
+drawRectangle(gctx, 0, 0, gameScreen.width, gameScreen.height, "black");
+drawText(gctx, gameScreen.width/2, gameScreen.height/2, "Loading...", 50);
 
 </script>
 </html>
