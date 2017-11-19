@@ -104,7 +104,7 @@ var hoveredArea = undefined;
 
 var mouseDownPos = undefined;
 var heldButtons = 0;
-var players, invasionProgress, winner;
+var players, invasionProgress, winner, currentArea;
 var gameState, races, playerRaces, invadableAreas;
 
 //total pixel change in starting x over all 8 lanes
@@ -209,7 +209,7 @@ function pressedKey(event) {
 	} else if (gameState === "race_selector") {
 		if (event.code === "KeyA" || event.key === "ArrowLeft") {
 			playerRaces[0]--;
-			if (playerRaces[0] < 0) playerRaces[0] = races.length;
+			if (playerRaces[0] < 0) playerRaces[0] = races.length - 1;
 		} else if (event.code === "KeyD" || event.key === "ArrowRight") {
 			playerRaces[0]++;
 			if (playerRaces[0] >= races.length) playerRaces[0] = 0;
@@ -470,7 +470,7 @@ function tickGame() {
 			}
 		}
 		let unit = player.allUnits[player.selectedUnit];
-		if (player.cooldown > unit.cooldown) {
+		if (winner === undefined && player.cooldown > unit.cooldown) {
 			if (player.chargeProgress >= 20) {
 				for (let lane_id = 0; lane_id < 8; lane_id++) {
 					player.lanes[lane_id].push(new Unit(side, lane_id, 0, unit));
@@ -493,6 +493,9 @@ function tickGame() {
 	if (winner !== undefined) {
 		let loser_ = players[1 - winner];
 		let winner_ = players[winner];
+		if (winner_.cooldown > 200) {
+			endMatch();
+		}
 		for (let lane_id = 0; lane_id < 8; lane_id++) {
 			let lanel = loser_.lanes[lane_id].splice(0);
 			let lanew = winner_.lanes[lane_id];
@@ -502,17 +505,33 @@ function tickGame() {
 				unit.side = winner;
 				lanew.push(unit);
 			}
-			
 		}
 	}
 }
 
 
-function initMatch() {
+function endMatch() {
+	if (winner === 0) {
+		races[playerRaces[winner]].areas.push(currentArea);
+		races[playerRaces[1 - winner]].areas.splice(races[playerRaces[1 - winner]].areas.indexOf(currentArea), 1);
+		let area = document.getElementById("area"+currentArea);
+		let canvas = document.getElementById("c"+currentArea);
+		let ctx = canvas.getContext("2d");
+		ctx.globalCompositeOperation = "source-over";
+		ctx.drawImage(area, 0, 0, map_img.fw, map_img.fh);
+		ctx.globalCompositeOperation = "source-in";
+		drawRectangle(ctx, 0, 0, map_img.fw, map_img.fh, races[playerRaces[winner]].colour);
+	}
+	initMap();
+	currentArea = undefined;
+}
+
+function initMatch(area) {
 	players = [new Player(0), new Player(1)];
 	invasionProgress = 50;
 	winner = undefined;
 	gameState = "battle";
+	currentArea = area;
 }
 
 function initGame() {
@@ -548,7 +567,7 @@ function initGame() {
 }
 
 function initMap() {
-	let race = races[playerRaces];
+	let race = races[playerRaces[0]];
 	invadableAreas = {};
 	for (let i = 0; i < race.areas.length; i++) {
 		let area_id = race.areas[i], centre = area_centres[area_id];
@@ -700,7 +719,7 @@ function mouseUpCanvas(event) {
 		//console.log(clickedArea);
 		if (invadableAreas[clickedArea] !== undefined) {
 			playerRaces.push(getAreaOwnerId(clickedArea));
-			initMatch();
+			initMatch(clickedArea);
 		}
 	}
 	//
