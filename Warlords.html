@@ -104,7 +104,8 @@ var hoveredArea = undefined;
 
 var mouseDownPos = undefined;
 var heldButtons = 0;
-var players, invasionProgress, winner, currentArea;
+const MAX_BATTLE_DURATION = 5 * 60 * 30; //5 minutes
+var players, invasionProgress, battleTimer, winner, currentArea;
 var gameState, races, playerRaces, invadableAreas;
 
 //total pixel change in starting x over all 8 lanes
@@ -178,9 +179,11 @@ function pressedKey(event) {
 			players[0].selectedLane--;
 			if (players[0].selectedLane < 0) players[0].selectedLane = 7;
 		} else if (event.code === "KeyA") {
+			players[0].preparedToCharge = false;
 			players[0].selectedUnit--;
 			if (players[0].selectedUnit < 0) players[0].selectedUnit = players[0].allUnits.length - 1;
 		} else if (event.code === "KeyD") {
+			players[0].preparedToCharge = false;
 			players[0].selectedUnit++;
 			if (players[0].selectedUnit >= players[0].allUnits.length) players[0].selectedUnit = 0;
 		} else if (event.key === "ArrowDown") {
@@ -190,6 +193,7 @@ function pressedKey(event) {
 			players[player_right].selectedLane--;
 			if (players[player_right].selectedLane < 0) players[player_right].selectedLane = 7;
 		} else if (event.key === "ArrowLeft") {
+			players[player_right].preparedToCharge = false;
 			players[player_right].selectedUnit -= mirror;
 			if (players[player_right].selectedUnit >= players[player_right].allUnits.length) {
 				players[player_right].selectedUnit = 0;
@@ -197,12 +201,17 @@ function pressedKey(event) {
 				players[player_right].selectedUnit = players[player_right].allUnits.length - 1;
 			}
 		} else if (event.key === "ArrowRight") {
+			players[player_right].preparedToCharge = false;
 			players[player_right].selectedUnit += mirror;
 			if (players[player_right].selectedUnit >= players[player_right].allUnits.length) {
 				players[player_right].selectedUnit = 0;
 			} else if (players[player_right].selectedUnit < 0) {
 				players[player_right].selectedUnit = players[player_right].allUnits.length - 1;
 			}
+		} else if (event.code === "KeyQ") {
+			if (players[0].chargeProgress >= 20) players[0].preparedToCharge = true;
+		} else if (event.key === "Enter") {
+			if (players[player_right].chargeProgress >= 20) players[player_right].preparedToCharge = true;
 		} /*else {
 			console.log(event);
 		}*/
@@ -301,9 +310,10 @@ class Unit {
 		this.lane_id = lane_id;
 		this.x = x;
 		this.health = 100;
-		this.thrustResist = 0.1;
-		this.cutResist = 0.0;
-		this.bluntResist = 0.2;
+		this.thrustResist = unit.thrustResist || 0;
+		this.cutResist = unit.cutResist || 0;
+		this.bluntResist = unit.bluntResist || 0;
+		this.magicResist = unit.magicResist || 0;
 		this.attacks = unit.attacks;
 		//maybe change it so all attacks are checked through for the highest range?
 		this.maxRange = unit.attacks[0].range;
@@ -422,10 +432,11 @@ class Player {
 		this.selectedLane = 4;
 		this.selectedUnit = 0;
 		this.chargeProgress = 0;
+		this.preparedToCharge = false;
 		this.allUnits = [
 			{"img_info":pikeman, "cooldown":80, "speed":15, "attacks":[{"type":"thrust", "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
-			{"img_info":poleaxer, "cooldown":180, "speed":7, "attacks":[{"type":"cut", "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
-			{"img_info":bardicher, "cooldown":120, "speed":10, "preferredRange":550, "attacks":[{"type":"thrust", "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
+			{"img_info":poleaxer, "cooldown":180, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
+			{"img_info":bardicher, "cooldown":120, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
 			{"img_info":archer, "cooldown":120, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
 		];
 	}
@@ -453,7 +464,7 @@ class Player {
 
 
 function tickGame() {
-	//blarg
+	if (battleTimer > 0) battleTimer--;
 	for (let side = 0; side < 2; side++) {
 		let player = players[side];
 		player.cooldown += 1;
@@ -471,11 +482,12 @@ function tickGame() {
 		}
 		let unit = player.allUnits[player.selectedUnit];
 		if (winner === undefined && player.cooldown > unit.cooldown) {
-			if (player.chargeProgress >= 20) {
+			if (player.chargeProgress >= 20 && (player.preparedToCharge || player.isAI)) {
 				for (let lane_id = 0; lane_id < 8; lane_id++) {
 					player.lanes[lane_id].push(new Unit(side, lane_id, 0, unit));
 				}
 				player.chargeProgress -= 20;
+				player.preparedToCharge = false;
 			} else {
 				player.lanes[player.selectedLane].push(new Unit(side, player.selectedLane, 0, unit));
 			}
@@ -485,9 +497,10 @@ function tickGame() {
 			player.doAI();
 		}
 	}
-	if (invasionProgress >= 100) {
+	let timerBonus = 49 * (battleTimer <= 0);
+	if (invasionProgress >= 100 - timerBonus) {
 		winner = 0;
-	} else if (invasionProgress <= 0) {
+	} else if (invasionProgress <= 0 + timerBonus) {
 		winner = 1;
 	}
 	if (winner !== undefined) {
@@ -532,6 +545,7 @@ function initMatch(area) {
 	winner = undefined;
 	gameState = "battle";
 	currentArea = area;
+	battleTimer = MAX_BATTLE_DURATION;
 }
 
 function initGame() {
@@ -611,6 +625,9 @@ function drawGame() {
 
 function drawSelector() {
 	drawRectangle(gctx, gameScreen.width/3, gameScreen.height/3, gameScreen.width/3, gameScreen.height/3, races[playerRaces[0]].colour);
+	drawText(gctx, gameScreen.width/2, 30, "A and D or left and right arrow to change race", "white", "30");
+	drawText(gctx, gameScreen.width/2, 60, "Enter to select", "white", "30");
+	drawText(gctx, gameScreen.width/2, gameScreen.height/2, races[playerRaces[0]].name, "black", "30");
 }
 
 
@@ -678,11 +695,19 @@ function drawUI() {
 				sx = (ii.totalFrames - 1) * ii.fw - sx;
 			}
 			let w = ii.fw * 0.5, h = ii.fh * 0.5;
-			drawRectangle(gctx, x_, y + h, w, -h * player.cooldown / unit.cooldown, "#00000041");
+			let colour = (player.preparedToCharge && player.selectedUnit === i ? "#f0000041" : "#00000041");
+			drawRectangle(gctx, x_, y + h, w, -h * player.cooldown / unit.cooldown, colour);
 			if (player.selectedUnit === i) drawRectangle(gctx, x_, y, w, h, "yellow", true);
 			gctx.drawImage(ii.img, sx, sy, ii.fw, ii.fh, x_, y, w, h);
 			x += w;
 		}
+	}
+	if (players[0].chargeProgress >= 20) {
+		drawText(gctx, 0, 60, "About to charge", "red", 20, "left");
+	}
+	drawCircle(gctx, gameScreen.width/2, 60, 50, "#444444", 1 - battleTimer/MAX_BATTLE_DURATION);
+	if (battleTimer < 30 * 60) {
+		drawText(gctx, gameScreen.width/2, 60, Math.floor(battleTimer/30), "white", 60);
 	}
 	if (winner !== undefined) {
 		let wintext = winner === 1 ? "You Lose" : "You Win";
@@ -751,6 +776,17 @@ function contextMenuCanvas(event) {
 }
 
 
+function drawCircle(ctx, x, y, radius, color, portion) {
+	ctx.strokeStyle = color;
+	ctx.beginPath();
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.lineWidth = radius;
+	if (portion === undefined) portion = 1;
+	ctx.arc(x, y, radius/2, -0.5*Math.PI, Math.PI * (2 * portion - 0.5), false);
+	ctx.stroke();
+	ctx.lineWidth = 1;
+}
 
 function drawLine(ctx, x1, y1, x2, y2, color) {
 	ctx.strokeStyle = color;
