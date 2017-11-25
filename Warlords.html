@@ -14,7 +14,7 @@
 <img id="arrow" style="display: none;" src="arrow.png">
 
 <div>
-	<canvas id="gameScreen" width="1000" height="570" onmousedown="mouseDownCanvas(event)" onmousemove="mouseMoveCanvas(event)" onmouseup="mouseUpCanvas(event)" oncontextmenu="contextMenuCanvas(event)" />
+	<canvas id="gameScreen" width="1000" height="570" onmousedown="mouseDownCanvas(event)" onmousemove="mouseMoveCanvas(event)" onmouseup="mouseUpCanvas(event)" oncontextmenu="contextMenuCanvas(event)" onwheel="mouseScroll(event)" />
 </div>
 <canvas id="c1" width="1000" height="570" style="display: none;" />
 <canvas id="c2" width="1000" height="570" style="display: none;" />
@@ -107,6 +107,8 @@ var heldButtons = 0;
 const MAX_BATTLE_DURATION = 5 * 60 * 30; //5 minutes
 var players, invasionProgress, battleTimer, winner, currentArea;
 var gameState, races, playerRaces, invadableAreas;
+const SHOP = {UPGRADE:{w:800,h:400}, HOTBAR:{w:800,h:100}, EQUIP:{w:100,h:500}, BUY:{w:100,h:500}}
+var shop = {};
 
 //total pixel change in starting x over all 8 lanes
 const MAX_X_CHANGE = 150;
@@ -212,6 +214,9 @@ function pressedKey(event) {
 			if (players[0].chargeProgress >= 20) players[0].preparedToCharge = true;
 		} else if (event.key === "Enter") {
 			if (players[player_right].chargeProgress >= 20) players[player_right].preparedToCharge = true;
+		} else if (event.key === "Escape") {
+			//surrender for now, later bring up pause menu
+			initMap();
 		} /*else {
 			console.log(event);
 		}*/
@@ -223,7 +228,15 @@ function pressedKey(event) {
 			playerRaces[0]++;
 			if (playerRaces[0] >= races.length) playerRaces[0] = 0;
 		} else if (event.key === "Enter") {
-			initMap();
+			initShop();
+		}
+	} else if (gameState === "shop") {
+		if (event.key === "Escape") {
+			gameState = "map";
+		}
+	} else if (gameState === "map") {
+		if (event.key === "Escape") {
+			gameState = "shop";
 		}
 	}
 }
@@ -422,7 +435,7 @@ class Unit {
 
 
 class Player {
-	constructor(side) {
+	constructor(side, army) {
 		this.side = side;
 		//increments each tick, couldn't think of a better name
 		this.cooldown = 0;
@@ -433,7 +446,7 @@ class Player {
 		this.selectedUnit = 0;
 		this.chargeProgress = 0;
 		this.preparedToCharge = false;
-		this.allUnits = [
+		this.allUnits = army || [
 			{"img_info":pikeman, "cooldown":80, "speed":15, "attacks":[{"type":"thrust", "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
 			{"img_info":poleaxer, "cooldown":180, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
 			{"img_info":bardicher, "cooldown":120, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
@@ -534,13 +547,20 @@ function endMatch() {
 		ctx.drawImage(area, 0, 0, map_img.fw, map_img.fh);
 		ctx.globalCompositeOperation = "source-in";
 		drawRectangle(ctx, 0, 0, map_img.fw, map_img.fh, races[playerRaces[winner]].colour);
+		shop.funds += 300;
+	} else {
+		shop.funds += 100;
 	}
 	initMap();
 	currentArea = undefined;
 }
 
 function initMatch(area) {
-	players = [new Player(0), new Player(1)];
+	let player_army = [];
+	for (let i = 0; i < shop.equippedUnits.length; i++) {
+		player_army.push(shop.boughtUnits[shop.equippedUnits[i]]);
+	}
+	players = [new Player(0, player_army), new Player(1)];
 	invasionProgress = 50;
 	winner = undefined;
 	gameState = "battle";
@@ -580,6 +600,28 @@ function initGame() {
 	playerRaces = [2];
 }
 
+function initShop() {
+	shop.equippedUnits = ["pikeman","poleaxer"];
+	shop.boughtUnits = [];
+	shop.funds = 500;
+	shop.displayedUnit = undefined;
+	shop.equipOffset = 0;
+	shop.buyOffset = 0;
+	shop.availableUnits = {
+		pikeman:{id:"pikeman", name:"Pikeman", "img_info":pikeman, "cooldown":80, "price":300, "speed":15, "attacks":[{"type":"thrust", "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
+		poleaxer:{id:"poleaxer", name:"Poleaxer", "img_info":poleaxer, "cooldown":180, "price":400, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
+		bardicher:{id:"bardicher", name:"Bardicher", "img_info":bardicher, "cooldown":120, "price":400, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
+		archer:{id:"archer", name:"Archer", "img_info":archer, "cooldown":120, "price":500, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
+	};
+	for (let i = 0; i < shop.equippedUnits.length; i++) {
+		let unit_name = shop.equippedUnits[i];
+		shop.boughtUnits[unit_name] = shop.availableUnits[unit_name];
+		shop.boughtUnits[unit_name].bought = true;
+		delete shop.availableUnits[unit_name];
+	}
+	initMap();
+}
+
 function initMap() {
 	let race = races[playerRaces[0]];
 	invadableAreas = {};
@@ -597,7 +639,7 @@ function initMap() {
 			}
 		}
 	}
-	gameState = "map";
+	gameState = "shop";
 }
 
 
@@ -613,12 +655,15 @@ class Race {
 function drawGame() {
 	if (gameState === "battle") {
 		tickGame();
-		drawBattle();
+		drawBackground();
 		drawUI();
+		drawBattle();
 	} else if (gameState === "map") {
 		drawMap();
 	} else if (gameState === "race_selector") {
 		drawSelector();
+	} else if (gameState === "shop") {
+		drawShop();
 	}
 }
 
@@ -628,6 +673,63 @@ function drawSelector() {
 	drawText(gctx, gameScreen.width/2, 30, "A and D or left and right arrow to change race", "white", "30");
 	drawText(gctx, gameScreen.width/2, 60, "Enter to select", "white", "30");
 	drawText(gctx, gameScreen.width/2, gameScreen.height/2, races[playerRaces[0]].name, "black", "30");
+}
+
+
+function drawShop() {
+	drawRectangle(gctx, 0, 0, gameScreen.width, gameScreen.height, "#453423");
+	drawUpgrades(0, 0, SHOP.UPGRADE.w, SHOP.UPGRADE.h);
+	drawHotbar(0, gameScreen.height - SHOP.HOTBAR.h, SHOP.HOTBAR.w, SHOP.HOTBAR.h);
+	drawEquiplist(SHOP.UPGRADE.w, 0, SHOP.EQUIP.w, SHOP.EQUIP.h);
+	drawBuylist(gameScreen.width - SHOP.BUY.w, 0, SHOP.BUY.w, SHOP.BUY.h);
+	drawRectangleWithText(gctx, SHOP.HOTBAR.w, SHOP.BUY.h, 200, 70, "green", "Done", "black", 30);
+	drawText(gctx, 100, SHOP.UPGRADE.h + 35, "Money: "+shop.funds, "white", 30);
+}
+function drawUpgrades(x, y, w, h) {
+	drawText(gctx, x + w/2, y + h/4, "Upgrades", "white", 50);
+	if (shop.displayedUnit !== undefined) {
+		drawText(gctx, x + w/2, y + h/3, shop.displayedUnit.name, "white", 30);
+		let text;
+		if (shop.displayedUnit.bought) {
+			if (shop.equippedUnits.indexOf(shop.displayedUnit.id) === -1) {
+				text = "Equip";
+			} else {
+				text = "Unequip";
+			}
+		} else {
+			text = "Buy for " + shop.displayedUnit.price
+		}
+		drawRectangleWithText(gctx, x + w - 200, y + h, 200, 50, "blue", text, "black", 30);
+	}
+}
+function drawHotbar(x, y, w, h) {
+	drawText(gctx, x + w/2, y + h/2, "HOTBAR", "white", 20);
+	drawRectangle(gctx, x,y, w,h, "red", true);
+	for (let i = 0; i < shop.equippedUnits.length; i++) {
+		let unit = shop.boughtUnits[shop.equippedUnits[i]];
+		gctx.drawImage(unit.img_info.img, 0,0, 100,100, x+100*i,y, 100,100);
+	}
+}
+function drawEquiplist(x, y, w, h) {
+	drawText(gctx, x + w/2, y + h/2, "EQUIP", "white", 20);
+	drawRectangle(gctx, x,y, w,h, "red", true);
+	let keys = Object.keys(shop.boughtUnits);
+	for (let i = 0; i < keys.length; i++) {
+		let unit = shop.boughtUnits[keys[i]];
+		gctx.drawImage(unit.img_info.img, 0,0, 100,100, x,y+100*i, 100,100);
+		if (shop.equippedUnits.indexOf(keys[i]) >= 0) {
+			drawRectangle(gctx, x, y + 100*i, 10, 10, "green");
+		}
+	}
+}
+function drawBuylist(x, y, w, h) {
+	drawText(gctx, x + w/2, y + h/2, "BUY", "white", 20);
+	drawRectangle(gctx, x,y, w,h, "red", true);
+	let keys = Object.keys(shop.availableUnits);
+	for (let i = 0; i < keys.length; i++) {
+		let unit = shop.availableUnits[keys[i]];
+		gctx.drawImage(unit.img_info.img, 0,0, 100,100, x,y+100*i, 100,100);
+	}
 }
 
 
@@ -652,16 +754,8 @@ function drawMap() {
 
 
 function drawBattle() {
-	//basically draws everything when in the main playing mode
-	drawRectangle(gctx, 0, 0, gameScreen.width, gameScreen.height, "skyblue")
-	drawRectangle(gctx, 0, HORIZON_HEIGHT, gameScreen.width, gameScreen.height, "#4aa02c")
-	drawLine(gctx, 0, gameScreen.height, MAX_X_CHANGE, HORIZON_HEIGHT, "yellow");
-	drawLine(gctx, gameScreen.width, gameScreen.height, gameScreen.width - MAX_X_CHANGE, HORIZON_HEIGHT, "yellow");
 	for (let side = 0; side < 2; side++) {
 		let player = players[side];
-		let arrow_coords = getRenderCoords(side, player.selectedLane, 0);
-		let arrow_x = arrow_coords[0], arrow_y = arrow_coords[1], arrow_z = arrow_coords[2], mirror = (side === 1 ? -1 : 1);
-		gctx.drawImage(arrow.img, side * arrow.fw, 0, arrow.fw, arrow.fh, arrow_x, arrow_y - 60 + 20 * arrow_z, mirror * arrow.fw * (1.0 - 0.4 * (1.0-arrow_z)), arrow.fh * (1.0 - 0.4 * (1.0-arrow_z)));
 		for (let lane_id = 0; lane_id < 8; lane_id++) {
 			let lane = player.lanes[lane_id];
 			for (let unit_id = 0; unit_id < lane.length; unit_id++) {
@@ -677,6 +771,13 @@ function drawBattle() {
 	}
 }
 
+function drawBackground() {
+	drawRectangle(gctx, 0, 0, gameScreen.width, gameScreen.height, "skyblue")
+	drawRectangle(gctx, 0, HORIZON_HEIGHT, gameScreen.width, gameScreen.height, "#4aa02c")
+	drawLine(gctx, 0, gameScreen.height, MAX_X_CHANGE, HORIZON_HEIGHT, "yellow");
+	drawLine(gctx, gameScreen.width, gameScreen.height, gameScreen.width - MAX_X_CHANGE, HORIZON_HEIGHT, "yellow");
+}
+
 
 function drawUI() {
 	drawRectangle(gctx, 0, 0, gameScreen.width, 10, races[playerRaces[1]].colour);
@@ -685,6 +786,9 @@ function drawUI() {
 	for (let side = 0; side < 2; side++) {
 		let x = 0;
 		let player = players[side];
+		let arrow_coords = getRenderCoords(side, player.selectedLane, 0);
+		let arrow_x = arrow_coords[0], arrow_y = arrow_coords[1], arrow_z = arrow_coords[2], mirror = (side === 1 ? -1 : 1);
+		gctx.drawImage(arrow.img, side * arrow.fw, 0, arrow.fw, arrow.fh, arrow_x, arrow_y - 60 + 20 * arrow_z, mirror * arrow.fw * (1.0 - 0.4 * (1.0-arrow_z)), arrow.fh * (1.0 - 0.4 * (1.0-arrow_z)));
 		for (let i = 0; i < player.allUnits.length; i++) {
 			let unit = player.allUnits[i];
 			let ii = unit.img_info;
@@ -703,7 +807,7 @@ function drawUI() {
 		}
 	}
 	if (players[0].chargeProgress >= 20) {
-		drawText(gctx, 0, 60, "About to charge", "red", 20, "left");
+		drawText(gctx, 0, 60, "Ready to charge", "red", 20, "left");
 	}
 	drawCircle(gctx, gameScreen.width/2, 60, 50, "#444444", 1 - battleTimer/MAX_BATTLE_DURATION);
 	if (battleTimer < 30 * 60) {
@@ -735,7 +839,75 @@ function getClickedArea(pos) {
 		if (data[3] !== 0) return area_id;
 	}
 }
+function getClickedSection(pos) {
+	if (pos[0] > SHOP.HOTBAR.w && pos[1] > SHOP.BUY.h) {
+		return ["EXIT", pos];
+	}
+	if (pos[0] < SHOP.UPGRADE.w && pos[1] < SHOP.UPGRADE.h) {
+		return ["UPGRADE", pos];
+	} else if (pos[0] < SHOP.HOTBAR.w && pos[1] > gameScreen.height - SHOP.HOTBAR.h) {
+		return ["HOTBAR", [pos[0], pos[1] - gameScreen.height + SHOP.HOTBAR.h]];
+	} else if (pos[0] > SHOP.UPGRADE.w) {
+		if (pos[0] < SHOP.UPGRADE.w + SHOP.EQUIP.w) {
+			return ["EQUIP", [pos[0] - SHOP.UPGRADE.w, pos[1]]];
+		} else if (pos[0] > gameScreen.width - SHOP.BUY.w) {
+			return ["BUY", [pos[0] - gameScreen.width + SHOP.BUY.w, pos[1]]];
+		}
+	} else {
+		return ["NONE", pos];
+	}
+}
+function handleShopClick(subscreen, new_pos) {
+	if (subscreen === "EXIT") {
+		gameState = "map";
+	} else if (subscreen === "HOTBAR") {
+		let i = Math.floor(new_pos[0]/100);
+		if (i < shop.equippedUnits.length) {
+			shop.displayedUnit = shop.boughtUnits[shop.equippedUnits[i]];
+		}
+	} else if (subscreen === "EQUIP") {
+		let i = Math.floor(new_pos[1]/100);
+		let keys = Object.keys(shop.boughtUnits);
+		if (i < keys.length) {
+			shop.displayedUnit = shop.boughtUnits[keys[i]];
+		}
+	} else if (subscreen === "BUY") {
+		let i = Math.floor(new_pos[1]/100);
+		let keys = Object.keys(shop.availableUnits);
+		if (i < keys.length) {
+			shop.displayedUnit = shop.availableUnits[keys[i]];
+		}
+	} else if (subscreen === "UPGRADE") {
+		//blarg
+	} else if (subscreen === "NONE") {
+		if (shop.displayedUnit !== undefined && new_pos[0] > SHOP.UPGRADE.w - 200 && new_pos[0] < SHOP.UPGRADE.w && new_pos[1] > SHOP.UPGRADE.h && new_pos[1] < SHOP.UPGRADE.h + 50) {
+			//currently, we store the unit object. Would it be better to store the unit's id instead and always check whether it's in the keys of boughtUnits or availableUnits?
+			let unit_name = shop.displayedUnit.id;
+			if (shop.displayedUnit.bought) {
+				// equip/de-equip unit
+				if (shop.equippedUnits.indexOf(unit_name) === -1 && shop.equippedUnits.length < 8) {
+					shop.equippedUnits.push(unit_name);
+				} else {
+					let index = shop.equippedUnits.indexOf(unit_name);
+					if (index >= 0) {
+						shop.equippedUnits.splice(index, 1);
+					}
+				}
+			} else if (shop.funds >= shop.displayedUnit.price) {
+				//buy the unit
+				shop.funds -= shop.displayedUnit.price;
+				shop.displayedUnit.bought = true;
+				shop.boughtUnits[unit_name] = shop.availableUnits[unit_name];
+				delete shop.availableUnits[unit_name];
+			}
+		}
+	}
+}
 
+function mouseScroll(event) {
+	let scroll = event.deltaY;
+	//blarg
+}
 
 function mouseUpCanvas(event) {
 	let pos = getMousePos(event);
@@ -745,6 +917,12 @@ function mouseUpCanvas(event) {
 		if (invadableAreas[clickedArea] !== undefined) {
 			playerRaces.push(getAreaOwnerId(clickedArea));
 			initMatch(clickedArea);
+		}
+	} else if (gameState === "shop") {
+		let clickedSection = getClickedSection(pos);
+		if (clickedSection !== undefined) {
+			let subscreen = clickedSection[0], new_pos = clickedSection[1];
+			handleShopClick(subscreen, new_pos);
 		}
 	}
 	//
@@ -794,6 +972,11 @@ function drawLine(ctx, x1, y1, x2, y2, color) {
 	ctx.moveTo(x1, y1);
 	ctx.lineTo(x2, y2);
 	ctx.stroke();
+}
+
+function drawRectangleWithText(ctx, x, y, w, h, color_rect, text, color_text, size) {
+	drawRectangle(ctx, x, y, w, h, color_rect);
+	drawText(ctx, x + w/2, y + h/2, text, color_text, size);
 }
 
 function drawRectangle(ctx, x, y, w, h, color, hollow) {
