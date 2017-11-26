@@ -16,6 +16,12 @@
 <div>
 	<canvas id="gameScreen" width="1000" height="570" onmousedown="mouseDownCanvas(event)" onmousemove="mouseMoveCanvas(event)" onmouseup="mouseUpCanvas(event)" oncontextmenu="contextMenuCanvas(event)" onwheel="mouseScroll(event)" />
 </div>
+<div>
+	<p>Music by <a href="https://halfpixel.bandcamp.com/">Half Pixel</a></p>
+</div>
+<audio id="musics" loop preload="auto">
+	<source src="HP_dance_of_the_sands.mp3" type="audio/mp3">
+</audio>
 <canvas id="c1" width="1000" height="570" style="display: none;" />
 <canvas id="c2" width="1000" height="570" style="display: none;" />
 <canvas id="c3" width="1000" height="570" style="display: none;" />
@@ -172,6 +178,11 @@ function isObject(a) {
 
 function pressedKey(event) {
 	//console.log(event)
+	if (event.code === "KeyM") {
+		//note - this is special because it activates anywhere
+		let musics = document.getElementById("musics");
+		musics.volume = (musics.volume === 0.4 ? 0.1 : 0.4);
+	}
 	if (gameState === "battle") {
 		let player_right = 1 - players[1].isAI, mirror = (player_right === 1 ? -1 : 1);
 		if (event.code === "KeyS") {
@@ -229,6 +240,9 @@ function pressedKey(event) {
 			if (playerRaces[0] >= races.length) playerRaces[0] = 0;
 		} else if (event.key === "Enter") {
 			initShop();
+			let musics = document.getElementById("musics");
+			musics.volume = 0.4;
+			musics.play();
 		}
 	} else if (gameState === "shop") {
 		if (event.key === "Escape") {
