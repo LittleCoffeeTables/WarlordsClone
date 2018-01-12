@@ -10,6 +10,7 @@
 <img id="poleaxer" style="display: none;" src="poleaxer.png">
 <img id="bardicher" style="display: none;" src="bardicher.png">
 <img id="archer" style="display: none;" src="archer.png">
+<img id="mage" style="display: none;" src="mage.png">
 
 <img id="arrow" style="display: none;" src="arrow.png">
 
@@ -115,6 +116,7 @@ var players, invasionProgress, battleTimer, winner, currentArea;
 var gameState, races, playerRaces, invadableAreas;
 const SHOP = {UPGRADE:{w:800,h:400}, HOTBAR:{w:800,h:100}, EQUIP:{w:100,h:500}, BUY:{w:100,h:500}}
 var shop = {};
+var difficulty;
 
 //total pixel change in starting x over all 8 lanes
 const MAX_X_CHANGE = 150;
@@ -123,10 +125,13 @@ const FIELD_WIDTH = 10000;
 const FIELD_HEIGHT = 200;
 const Z_PER_LANE = [0, 0.11, 0.23, 0.36, 0.50, 0.65, 0.81, 0.98];
 
-const pikeman = {"img":document.getElementById("pikeman"), "fw":100, "fh":100, "attackFrame":4, "frames":7, "totalFrames":10};
-const poleaxer = {"img":document.getElementById("poleaxer"), "fw":100, "fh":100, "attackFrame":4, "frames":8, "totalFrames":10};
-const bardicher = {"img":document.getElementById("bardicher"), "fw":100, "fh":100, "attackFrame":4, "frames":11, "totalFrames":11};
-const archer = {"img":document.getElementById("archer"), "fw":100, "fh":100, "attackFrame":4, "frames":8, "totalFrames":11};
+const img_infos = {
+	pikeman: {"img":document.getElementById("pikeman"), "fw":100, "fh":100, "attackFrame":4, "frames":7, "totalFrames":10},
+	poleaxer: {"img":document.getElementById("poleaxer"), "fw":100, "fh":100, "attackFrame":4, "frames":8, "totalFrames":10},
+	bardicher: {"img":document.getElementById("bardicher"), "fw":100, "fh":100, "attackFrame":4, "frames":11, "totalFrames":11},
+	archer: {"img":document.getElementById("archer"), "fw":100, "fh":100, "attackFrame":4, "frames":8, "totalFrames":11},
+	mage: {"img":document.getElementById("mage"), "fw":100, "fh":100, "attackFrame":4, "frames":11, "totalFrames":11},
+}
 
 const arrow = {"img":document.getElementById("arrow"), "fw":88, "fh":61};
 const map_img = {"img":document.getElementById("map"), "fw":1000, "fh":570};
@@ -149,6 +154,15 @@ const area_centres = {
 	22:[615,305], 23:[625,420], 24:[640,520], 25:[785,545], 26:[950,530], 27:[860,475], 28:[745,445],
 	29:[790,305], 30:[875,380], 31:[980,370], 32:[945,230], 33:[825,245]
 }
+
+
+const ALL_UNITS = JSON.stringify({
+	pikeman:{id:"pikeman", name:"Pikeman", "cooldown":80, "price":300, "speed":15, "attacks":[{"type":"thrust", "melee":true, "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
+	poleaxer:{id:"poleaxer", name:"Poleaxer", "cooldown":180, "price":400, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "melee":true, "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
+	bardicher:{id:"bardicher", name:"Bardicher", "cooldown":120, "price":400, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "melee":true, "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "melee":true, "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
+	archer:{id:"archer", name:"Archer", "cooldown":120, "price":500, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
+	mage:{id:"mage", name:"Mage", "cooldown":200, "price":900, "speed":9, "preferredRange":1500, "attacks":[{"type":"blast", "melee":true, "maxDamage":15, "range":1500, "weight":2, "frame":4, "fn":3}, {"type":"shockwave", "range":1400, "weight":1, "frame":8, "fn":3}], "specials":[{"type":"deflect", "special":true, "range":2000, "weight":1, "frame":8, "fn":3}]},
+});
 
 
 
@@ -241,7 +255,7 @@ function pressedKey(event) {
 		} else if (event.key === "Enter") {
 			initShop();
 			let musics = document.getElementById("musics");
-			musics.volume = 0.4;
+			musics.volume = 0.1;
 			musics.play();
 		}
 	} else if (gameState === "shop") {
@@ -342,6 +356,7 @@ class Unit {
 		this.bluntResist = unit.bluntResist || 0;
 		this.magicResist = unit.magicResist || 0;
 		this.attacks = unit.attacks;
+		this.specials = unit.specials;
 		//maybe change it so all attacks are checked through for the highest range?
 		this.maxRange = unit.attacks[0].range;
 		this.preferredRange = unit.preferredRange || this.maxRange;
@@ -401,12 +416,19 @@ class Unit {
 				this.currentAttack = attack;
 				this.walkFrame = attack.frame;
 			}
-			if (this.currentAttack.type !== "shoot" && this.walkFrame === this.currentAttack.frame && this.walkCounter === 1) {
+			if (this.currentAttack.melee === true && this.walkFrame === this.currentAttack.frame && this.walkCounter === 1) {
 				//wth is up with piercing being hardcoded
 				enemy.takeDamage(this.currentAttack.type, this.currentAttack.maxDamage * (0.8 + 0.2 * Math.random()), 0.4)
 			} else if (this.currentAttack.type === "shoot" && this.walkFrame === this.currentAttack.frame + this.currentAttack.fn - 1 && this.walkCounter === 1) {
 				//launch projectile
 				players[this.side].projectiles[this.lane_id].push(new Projectile(this.side, this.lane_id, this.x, -55, [this.currentAttack.maxVelocity * (0.95 + 0.1 * Math.random()), 0.2 + distance / 1000 * -0.5 * (0.95 + 0.1 * Math.random())]))
+			} else if (this.currentAttack.type === "shockwave" && this.walkFrame === this.currentAttack.frame + this.currentAttack.fn - 1 && this.walkCounter === 1) {
+				for (let unit_id = players[1-this.side].lanes[this.lane_id].length - 1; unit_id >= 0; unit_id--) {
+					let unit = players[1-this.side].lanes[this.lane_id][unit_id];
+					if (Math.abs(this.x + unit.x - FIELD_WIDTH) <= this.currentAttack.range) {
+						unit.x -= 100;
+					}
+				}
 			}
 		}
 		if (enemy === undefined || distance > this.preferredRange) {
@@ -414,9 +436,57 @@ class Unit {
 				this.x += this.speed;
 			}
 		}
-		if (enemy === undefined && this.currentAttack) {
+		if (enemy === undefined && this.currentAttack && !this.currentAttack.special) {
 			this.walkFrame = 0;
 			this.currentAttack = undefined;
+		}
+		if (this.currentAttack && this.currentAttack.type === "deflect" && this.walkFrame === this.currentAttack.frame + this.currentAttack.fn - 1 && this.walkCounter === 1) {
+			for (let proj_id = players[1-this.side].projectiles[this.lane_id].length - 1; proj_id >= 0; proj_id--) {
+				let projectile = players[1-this.side].projectiles[this.lane_id][proj_id];
+				let distance = FIELD_WIDTH - projectile.x - this.x;
+				if (Math.abs(distance) < this.currentAttack.range) {
+					players[1-this.side].projectiles[this.lane_id].splice(proj_id, 1);
+					projectile.x = FIELD_WIDTH - projectile.x;
+					projectile.side = 1 - projectile.side;
+					projectile.velocity[0] = projectile.velocity[0] * 0.4;
+					projectile.velocity[1] = projectile.velocity[1] * 0.4;
+					players[this.side].projectiles[this.lane_id].push(projectile);
+				}
+			}
+		}
+		if (!this.currentAttack && this.specials !== undefined) {
+			let potential_attacks = [];
+			let total_weight = 0;
+			for (let i = 0; i < this.specials.length; i++) {
+				let special = this.specials[i];
+				if (special.type === "deflect") {
+					let lane = players[1 - this.side].projectiles[this.lane_id];
+					for (let proj_id = 0; proj_id < lane.length; proj_id++) {
+						let projectile = lane[proj_id];
+						let distance = FIELD_WIDTH - projectile.x - this.x;
+						if (distance > 0 && distance < special.range) {
+							potential_attacks.push(special);
+							total_weight += special.weight;
+							break;
+						}
+					}
+				}
+			}
+			if (potential_attacks.length === 0) {
+				//no special attack is valid
+				return;
+			}
+			let choice = total_weight * Math.random();
+			let attack;
+			for (let i = 0; i < potential_attacks.length; i++) {
+				attack = potential_attacks[i];
+				choice -= attack.weight;
+				if (choice < 0) {
+					break;
+				}
+			}
+			this.currentAttack = attack;
+			this.walkFrame = attack.frame;
 		}
 	}
 	draw() {
@@ -461,10 +531,11 @@ class Player {
 		this.chargeProgress = 0;
 		this.preparedToCharge = false;
 		this.allUnits = army || [
-			{"img_info":pikeman, "cooldown":80, "speed":15, "attacks":[{"type":"thrust", "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
-			{"img_info":poleaxer, "cooldown":180, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
-			{"img_info":bardicher, "cooldown":120, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
-			{"img_info":archer, "cooldown":120, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
+			{"img_info":img_infos.pikeman, "cooldown":80, "speed":15, "attacks":[{"type":"thrust", "melee":true, "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
+			{"img_info":img_infos.poleaxer, "cooldown":180, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "melee":true, "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
+			{"img_info":img_infos.bardicher, "cooldown":120, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "melee":true, "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "melee":true, "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
+			{"img_info":img_infos.archer, "cooldown":120, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
+			{"img_info":img_infos.mage, "cooldown":200, "price":900, "speed":9, "preferredRange":1500, "attacks":[{"type":"blast", "melee":true, "maxDamage":15, "range":1500, "weight":2, "frame":4, "fn":3}, {"type":"shockwave", "range":1400, "weight":1, "frame":8, "fn":3}], "specials":[{"type":"deflect", "special":true, "range":2000, "weight":1, "frame":8, "fn":3}]},
 		];
 	}
 	doAI() {
@@ -508,7 +579,7 @@ function tickGame() {
 			}
 		}
 		let unit = player.allUnits[player.selectedUnit];
-		if (winner === undefined && player.cooldown > unit.cooldown) {
+		if (unit !== undefined && winner === undefined && player.cooldown > unit.cooldown) {
 			if (player.chargeProgress >= 20 && (player.preparedToCharge || player.isAI)) {
 				for (let lane_id = 0; lane_id < 8; lane_id++) {
 					player.lanes[lane_id].push(new Unit(side, lane_id, 0, unit));
@@ -562,6 +633,7 @@ function endMatch() {
 		ctx.globalCompositeOperation = "source-in";
 		drawRectangle(ctx, 0, 0, map_img.fw, map_img.fh, races[playerRaces[winner]].colour);
 		shop.funds += 300;
+		difficulty++;
 	} else {
 		shop.funds += 100;
 	}
@@ -574,12 +646,32 @@ function initMatch(area) {
 	for (let i = 0; i < shop.equippedUnits.length; i++) {
 		player_army.push(shop.boughtUnits[shop.equippedUnits[i]]);
 	}
-	players = [new Player(0, player_army), new Player(1)];
+	let opponent_army = generateEnemyArmy();
+	players = [new Player(0, player_army), new Player(1, opponent_army)];
 	invasionProgress = 50;
 	winner = undefined;
 	gameState = "battle";
 	currentArea = area;
 	battleTimer = MAX_BATTLE_DURATION;
+}
+
+function generateEnemyArmy(area) {
+	let all_units = JSON.parse(ALL_UNITS);
+	let units = Object.keys(all_units);
+	for (var i = units.length - 1; i >= 0; i--) {
+		all_units[units[i]].img_info = img_infos[units[i]];
+	}
+	let race = playerRaces[1];
+	//this is the point where we should strip any units the race would never use from the units list - or maybe use a copy of the race's own units list, if such were to exist
+	let army = [];
+	let unit_count = Math.min(parseInt(2 + difficulty/6 + Math.random() * (2 + difficulty)), units.length);
+	for (let i = 0; i < unit_count; i++) {
+		let index = parseInt(Math.random() * units.length);
+		army.push(all_units[units[index]]);
+		//we should probably also at this point give the units any racial upgrades
+		units.splice(index, 1);
+	}
+	return army;
 }
 
 function initGame() {
@@ -612,21 +704,21 @@ function initGame() {
 		}
 	}
 	playerRaces = [2];
+	difficulty = 0;
 }
 
 function initShop() {
 	shop.equippedUnits = ["pikeman","poleaxer"];
 	shop.boughtUnits = [];
-	shop.funds = 500;
+	shop.funds = 300;
 	shop.displayedUnit = undefined;
 	shop.equipOffset = 0;
 	shop.buyOffset = 0;
-	shop.availableUnits = {
-		pikeman:{id:"pikeman", name:"Pikeman", "img_info":pikeman, "cooldown":80, "price":300, "speed":15, "attacks":[{"type":"thrust", "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
-		poleaxer:{id:"poleaxer", name:"Poleaxer", "img_info":poleaxer, "cooldown":180, "price":400, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
-		bardicher:{id:"bardicher", name:"Bardicher", "img_info":bardicher, "cooldown":120, "price":400, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
-		archer:{id:"archer", name:"Archer", "img_info":archer, "cooldown":120, "price":500, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
-	};
+	shop.availableUnits = JSON.parse(ALL_UNITS);
+	let units = Object.keys(shop.availableUnits);
+	for (var i = units.length - 1; i >= 0; i--) {
+		shop.availableUnits[units[i]].img_info = img_infos[units[i]];
+	}
 	for (let i = 0; i < shop.equippedUnits.length; i++) {
 		let unit_name = shop.equippedUnits[i];
 		shop.boughtUnits[unit_name] = shop.availableUnits[unit_name];
@@ -700,9 +792,12 @@ function drawShop() {
 	drawText(gctx, 100, SHOP.UPGRADE.h + 35, "Money: "+shop.funds, "white", 30);
 }
 function drawUpgrades(x, y, w, h) {
-	drawText(gctx, x + w/2, y + h/4, "Upgrades", "white", 50);
+	drawText(gctx, x + w/2, y + h/6, "Upgrades", "white", 50);
 	if (shop.displayedUnit !== undefined) {
-		drawText(gctx, x + w/2, y + h/3, shop.displayedUnit.name, "white", 30);
+		drawText(gctx, x + w/2, y + h/4, shop.displayedUnit.name, "white", 30);
+		//draw stats - really?
+		//draw upgrades
+		//draw equip button
 		let text;
 		if (shop.displayedUnit.bought) {
 			if (shop.equippedUnits.indexOf(shop.displayedUnit.id) === -1) {
@@ -807,12 +902,12 @@ function drawUI() {
 			let unit = player.allUnits[i];
 			let ii = unit.img_info;
 			let x_ = x, sy = 0, sx = 0;
+			let w = ii.fw * 0.5, h = ii.fh * 0.5;
 			if (side === 1) {
-				x_ = gameScreen.width - x - ii.fw;
+				x_ = gameScreen.width - x - w;
 				sy = ii.fh;
 				sx = (ii.totalFrames - 1) * ii.fw - sx;
 			}
-			let w = ii.fw * 0.5, h = ii.fh * 0.5;
 			let colour = (player.preparedToCharge && player.selectedUnit === i ? "#f0000041" : "#00000041");
 			drawRectangle(gctx, x_, y + h, w, -h * player.cooldown / unit.cooldown, colour);
 			if (player.selectedUnit === i) drawRectangle(gctx, x_, y, w, h, "yellow", true);
