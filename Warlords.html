@@ -157,11 +157,11 @@ const area_centres = {
 
 
 const ALL_UNITS = JSON.stringify({
-	pikeman:{id:"pikeman", name:"Pikeman", "cooldown":80, "price":300, "speed":15, "attacks":[{"type":"thrust", "melee":true, "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
-	poleaxer:{id:"poleaxer", name:"Poleaxer", "cooldown":180, "price":400, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "melee":true, "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
-	bardicher:{id:"bardicher", name:"Bardicher", "cooldown":120, "price":400, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "melee":true, "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "melee":true, "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
-	archer:{id:"archer", name:"Archer", "cooldown":120, "price":500, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
-	mage:{id:"mage", name:"Mage", "cooldown":200, "price":900, "speed":9, "preferredRange":1500, "attacks":[{"type":"blast", "melee":true, "maxDamage":15, "range":1500, "weight":2, "frame":4, "fn":3}, {"type":"shockwave", "range":1400, "weight":1, "frame":8, "fn":3}], "specials":[{"type":"deflect", "special":true, "range":2000, "weight":1, "frame":8, "fn":3}]},
+	pikeman:{id:"pikeman", name:"Spearman", "cooldown":80, "price":300, "speed":15, "attacks":[{"type":"thrust", "melee":true, "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}], "upgrades":{"speed":{"name":"Speed +10%", "effect":1.1, "cost":[30,60,100,150,210,300,440,600], "level":0}, "cooldown":{"name":"Cooldown -5%", "effect":0.95, "cost":[150,250,500,700], "level":0}, "maxDamage":{"name":"Max Damage +10%", "effect":1.1, "index":0, "cost":[60,100,150,210,300,440,600], "level":0}, "range":{"name":"Max range +10%", "effect":1.1, "cost":[50,100,150,220,300], "level":0}} },
+	poleaxer:{id:"poleaxer", name:"Poleaxer", "cooldown":180, "price":400, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "melee":true, "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}], "upgrades":{"speed":{"name":"Speed +10%", "effect":1.1, "cost":[30,60,100,150,210,300,440,600], "level":0}, "cooldown":{"name":"Cooldown -5%", "effect":0.95, "cost":[150,250,500,700], "level":0}, "maxDamage":{"name":"Max Damage +10%", "effect":1.1, "index":0, "cost":[60,100,150,210,300,440,600], "level":0}, "range":{"name":"Max range +10%", "effect":1.1, "cost":[50,100,150,220,300], "level":0}} },
+	bardicher:{id:"bardicher", name:"Bardicher", "cooldown":120, "price":400, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "melee":true, "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "melee":true, "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}], "upgrades":{"speed":{"name":"Speed +10%", "effect":1.1, "cost":[30,60,100,150,210,300,440,600], "level":0}, "cooldown":{"name":"Cooldown -5%", "effect":0.95, "cost":[150,250,500,700], "level":0}, "maxDamage0":{"name":"Thrust Damage +20%", "effect":1.2, "index":0, "cost":[60,100,150,210,300,440,600], "level":0}, "maxDamage1":{"name":"Cut Damage +10%", "effect":1.1, "index":1, "cost":[40,80,140,200,260,400,500], "level":0}, "range":{"name":"Max range +10%", "effect":1.1, "cost":[50,100,150,220,300], "level":0}} },
+	archer:{id:"archer", name:"Archer", "cooldown":120, "price":500, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxDamage":1.0, "maxVelocity":105, "range":4700, "weight":1, "frame":4, "fn":4}], "upgrades":{"speed":{"name":"Speed +10%", "effect":1.1, "cost":[30,60,100,150,210,300,440,600], "level":0}, "cooldown":{"name":"Cooldown -5%", "effect":0.95, "cost":[150,250,500,700], "level":0}, "maxDamage":{"name":"Arrow Damage +5%", "effect":1.05, "index":0, "cost":[60,100,150,210,300,440,600], "level":0}, "range":{"name":"Max range +5%", "effect":1.05, "cost":[50,100,150,220,300], "level":0}} },
+	mage:{id:"mage", name:"Mage", "cooldown":200, "price":900, "speed":9, "preferredRange":1500, "attacks":[{"type":"blast", "melee":true, "maxDamage":15, "range":1500, "weight":2, "frame":4, "fn":3}, {"type":"shockwave", "range":1400, "weight":1, "frame":8, "fn":3}], "specials":[{"type":"deflect", "special":true, "range":2000, "weight":1, "frame":8, "fn":3}], "upgrades":{"speed":{"name":"Speed +10%", "effect":1.1, "cost":[30,60,100,150,210,300,440,600], "level":0}, "cooldown":{"name":"Cooldown -5%", "effect":0.95, "cost":[150,250,500,700], "level":0}, "maxDamage":{"name":"Blast Damage +10%", "effect":1.1, "index":0, "cost":[100,150,200,300,450,600], "level":0}, "range":{"name":"Max range +10%", "effect":1.1, "cost":[100,150,220,300,450,700], "level":0}} },
 });
 
 
@@ -253,7 +253,7 @@ function pressedKey(event) {
 			playerRaces[0]++;
 			if (playerRaces[0] >= races.length) playerRaces[0] = 0;
 		} else if (event.key === "Enter") {
-			initShop();
+			initShop(races[playerRaces[0]].race_bonus);
 			let musics = document.getElementById("musics");
 			musics.volume = 0.1;
 			musics.play();
@@ -314,12 +314,13 @@ function getRenderCoords(side, lane_id, x) {
 
 class Projectile {
 	//assumed arrow
-	constructor(side, lane_id, x, y, velocity) {
+	constructor(side, lane_id, x, y, velocity, damage_multi) {
 		this.side = side;
 		this.lane_id = lane_id;
 		this.x = x;
 		this.y = y;
 		this.velocity = velocity;
+		this.damage_multi = damage_multi;
 	}
 	tick() {
 		let enemy = getFirstEnemy(this.side, this.lane_id, this.x, this.velocity[0]);
@@ -329,7 +330,7 @@ class Projectile {
 		this.velocity[1] += 0.08;
 		if (enemy !== undefined && this.y > -70 && this.y < -10) {
 			let speed = DBP(0,0, this.velocity[0], this.velocity[1]);
-			enemy.takeDamage("thrust", speed / 19, 0.0);
+			enemy.takeDamage("thrust", this.damage_multi * speed / 19, 0.0);
 			remove(players[this.side].projectiles[this.lane_id], this)
 		}
 		if (this.y > 0) remove(players[this.side].projectiles[this.lane_id], this);
@@ -337,10 +338,8 @@ class Projectile {
 	draw() {
 		let coords = getRenderCoords(this.side, this.lane_id, this.x);
 		let x = coords[0], y = coords[1], z = coords[2];
-		//console.log("arrow", x, y, z, this.y, this.velocity);
 		let mirror = this.side === 1 ? -1 : 1;
 		drawLine(gctx, x, y + this.y + 15 * z, x + mirror * 20 * (1.0 - 0.4 * (1.0-z)), y + this.y + 15 * z + this.velocity[1] * (1.0 - 0.4 * (1.0-z)), "black");
-		//gctx.drawImage(this.anim.img, sx, sy, fw, fh, x, y - fh, fw * (1.0 - 0.4 * (1.0-z)) * mirror, fh * (1.0 - 0.4 * (1.0-z)));
 	}
 }
 
@@ -352,13 +351,17 @@ class Unit {
 		this.x = x;
 		this.health = 100;
 		this.thrustResist = unit.thrustResist || 0;
-		this.cutResist = unit.cutResist || 0;
-		this.bluntResist = unit.bluntResist || 0;
-		this.magicResist = unit.magicResist || 0;
+		//this.cutResist = unit.cutResist || 0;
+		//this.bluntResist = unit.bluntResist || 0;
+		//this.magicResist = unit.magicResist || 0;
 		this.attacks = unit.attacks;
 		this.specials = unit.specials;
-		//maybe change it so all attacks are checked through for the highest range?
-		this.maxRange = unit.attacks[0].range;
+		let maxRange = 0;
+		for (let index = 0; index < unit.attacks.length; index++) {
+			let attack = unit.attacks[index];
+			if (attack.range > maxRange) maxRange = attack.range;
+		}
+		this.maxRange = maxRange;
 		this.preferredRange = unit.preferredRange || this.maxRange;
 		//speed should be roughly 6 times as high as in Warlords: Call to Arms eg. 5 * 6 = 30 for a pikeman
 		this.speed = unit.speed * (0.9 + 0.2 * Math.random());
@@ -421,7 +424,7 @@ class Unit {
 				enemy.takeDamage(this.currentAttack.type, this.currentAttack.maxDamage * (0.8 + 0.2 * Math.random()), 0.4)
 			} else if (this.currentAttack.type === "shoot" && this.walkFrame === this.currentAttack.frame + this.currentAttack.fn - 1 && this.walkCounter === 1) {
 				//launch projectile
-				players[this.side].projectiles[this.lane_id].push(new Projectile(this.side, this.lane_id, this.x, -55, [this.currentAttack.maxVelocity * (0.95 + 0.1 * Math.random()), 0.2 + distance / 1000 * -0.5 * (0.95 + 0.1 * Math.random())]))
+				players[this.side].projectiles[this.lane_id].push(new Projectile(this.side, this.lane_id, this.x, -55, [this.currentAttack.maxVelocity * (0.95 + 0.1 * Math.random()), 0.2 + distance / 1000 * -0.5 * (0.95 + 0.1 * Math.random())], this.currentAttack.maxDamage))
 			} else if (this.currentAttack.type === "shockwave" && this.walkFrame === this.currentAttack.frame + this.currentAttack.fn - 1 && this.walkCounter === 1) {
 				for (let unit_id = players[1-this.side].lanes[this.lane_id].length - 1; unit_id >= 0; unit_id--) {
 					let unit = players[1-this.side].lanes[this.lane_id][unit_id];
@@ -530,13 +533,8 @@ class Player {
 		this.selectedUnit = 0;
 		this.chargeProgress = 0;
 		this.preparedToCharge = false;
-		this.allUnits = army || [
-			{"img_info":img_infos.pikeman, "cooldown":80, "speed":15, "attacks":[{"type":"thrust", "melee":true, "maxDamage":20, "range":700, "weight":1, "frame":4, "fn":3}]},
-			{"img_info":img_infos.poleaxer, "cooldown":180, "speed":7, "thrustResist":0.3, "attacks":[{"type":"cut", "melee":true, "maxDamage":55, "range":800, "weight":1, "frame":4, "fn":4}]},
-			{"img_info":img_infos.bardicher, "cooldown":120, "speed":10, "preferredRange":550, "thrustResist":0.3, "attacks":[{"type":"thrust", "melee":true, "maxDamage":25, "range":700, "weight":1, "frame":8, "fn":3}, {"type":"cut", "melee":true, "maxDamage":40, "range":550, "weight":2, "frame":4, "fn":3}]},
-			{"img_info":img_infos.archer, "cooldown":120, "speed":7, "preferredRange":5000, "attacks":[{"type":"shoot", "maxVelocity":105, "range":6000, "weight":1, "frame":4, "fn":4}]},
-			{"img_info":img_infos.mage, "cooldown":200, "price":900, "speed":9, "preferredRange":1500, "attacks":[{"type":"blast", "melee":true, "maxDamage":15, "range":1500, "weight":2, "frame":4, "fn":3}, {"type":"shockwave", "range":1400, "weight":1, "frame":8, "fn":3}], "specials":[{"type":"deflect", "special":true, "range":2000, "weight":1, "frame":8, "fn":3}]},
-		];
+		//fallback to no army at all if none is given
+		this.allUnits = army || [];
 	}
 	doAI() {
 		//TODO: make this more intelligent
@@ -637,6 +635,8 @@ function endMatch() {
 	} else {
 		shop.funds += 100;
 	}
+	//axe the last attacked area - what about multiplayer???
+	playerRaces.pop()
 	initMap();
 	currentArea = undefined;
 }
@@ -646,7 +646,7 @@ function initMatch(area) {
 	for (let i = 0; i < shop.equippedUnits.length; i++) {
 		player_army.push(shop.boughtUnits[shop.equippedUnits[i]]);
 	}
-	let opponent_army = generateEnemyArmy();
+	let opponent_army = generateEnemyArmy(races[playerRaces[1]].race_bonus);
 	players = [new Player(0, player_army), new Player(1, opponent_army)];
 	invasionProgress = 50;
 	winner = undefined;
@@ -655,7 +655,8 @@ function initMatch(area) {
 	battleTimer = MAX_BATTLE_DURATION;
 }
 
-function generateEnemyArmy(area) {
+function generateEnemyArmy(race_bonus) {
+	race_bonus = race_bonus || {};
 	let all_units = JSON.parse(ALL_UNITS);
 	let units = Object.keys(all_units);
 	for (var i = units.length - 1; i >= 0; i--) {
@@ -667,8 +668,29 @@ function generateEnemyArmy(area) {
 	let unit_count = Math.min(parseInt(2 + difficulty/6 + Math.random() * (2 + difficulty)), units.length);
 	for (let i = 0; i < unit_count; i++) {
 		let index = parseInt(Math.random() * units.length);
-		army.push(all_units[units[index]]);
-		//we should probably also at this point give the units any racial upgrades
+		let unit = all_units[units[index]];
+		let keys = Object.keys(unit.upgrades);
+		for (let upgrade_index = 0; upgrade_index < keys.length; upgrade_index++) {
+			let upgrade = unit.upgrades[keys[upgrade_index]];
+			unit_race_bonus = race_bonus[units[index]] || {};
+			upgrade.level = unit_race_bonus[keys[upgrade_index]] || 0;
+			upgrade.level += parseInt(Math.random() * Math.min(upgrade.cost.length + 1, 1 + difficulty/4));
+			upgrade.level = Math.min(upgrade.cost.length, upgrade.level);
+			if (keys[upgrade_index] === "speed") {
+				unit.speed *= upgrade.effect ** upgrade.level;
+			} else if (keys[upgrade_index] === "cooldown") {
+				unit.cooldown *= upgrade.effect ** upgrade.level;
+			} else if (keys[upgrade_index].substr(0,9) === "maxDamage") {
+				unit.attacks[upgrade.index].maxDamage *= upgrade.effect ** upgrade.level;
+			} else if (keys[upgrade_index] === "range") {
+				let effect = upgrade.effect ** upgrade.level;
+				for (let index = 0; index < unit.attacks.length; index++) {
+					unit.attacks[index].range *= effect;
+				}
+				if (unit.preferredRange) unit.preferredRange *= effect;
+			}
+		}
+		army.push(unit);
 		units.splice(index, 1);
 	}
 	return army;
@@ -685,7 +707,7 @@ function initGame() {
 		new Race("River Orcs", "#f6267e", [21,22,28]),
 		new Race("Frog People", "#1bbd6b", [10,23,24]),
 		new Race("Plant People", "#417721", [9,11,12]),
-		new Race("Demons", "#d40c40", [17,18,32]),
+		new Race("Demons", "#d40c40", [17,18,32], {"pikeman":{"speed":2,"maxDamage":2,"range":2},"poleaxer":{"maxDamage":-2}} ),
 		new Race("Fish People", "#2cb1e2", [3,4,5]),
 		new Race("Lizardmen", "#db9930", [1,2,13])
 	];
@@ -707,17 +729,38 @@ function initGame() {
 	difficulty = 0;
 }
 
-function initShop() {
+function initShop(race_bonus) {
+	race_bonus = race_bonus || {};
 	shop.equippedUnits = ["pikeman","poleaxer"];
 	shop.boughtUnits = [];
-	shop.funds = 300;
+	shop.funds = 500;
 	shop.displayedUnit = undefined;
 	shop.equipOffset = 0;
 	shop.buyOffset = 0;
 	shop.availableUnits = JSON.parse(ALL_UNITS);
 	let units = Object.keys(shop.availableUnits);
 	for (var i = units.length - 1; i >= 0; i--) {
-		shop.availableUnits[units[i]].img_info = img_infos[units[i]];
+		let unit = shop.availableUnits[units[i]];
+		unit.img_info = img_infos[units[i]];
+		let keys = Object.keys(unit.upgrades);
+		for (let upgrade_index = 0; upgrade_index < keys.length; upgrade_index++) {
+			let upgrade = unit.upgrades[keys[upgrade_index]];
+			unit_race_bonus = race_bonus[units[i]] || {};
+			upgrade.level = unit_race_bonus[keys[upgrade_index]] || 0;
+			if (keys[upgrade_index] === "speed") {
+				unit.speed *= upgrade.effect ** upgrade.level;
+			} else if (keys[upgrade_index] === "cooldown") {
+				unit.cooldown *= upgrade.effect ** upgrade.level;
+			} else if (keys[upgrade_index].substr(0,9) === "maxDamage") {
+				unit.attacks[upgrade.index].maxDamage *= upgrade.effect ** upgrade.level;
+			} else if (keys[upgrade_index] === "range") {
+				let effect = upgrade.effect ** upgrade.level;
+				for (let index = 0; index < unit.attacks.length; index++) {
+					unit.attacks[index].range *= effect;
+				}
+				if (unit.preferredRange) unit.preferredRange *= effect;
+			}
+		}
 	}
 	for (let i = 0; i < shop.equippedUnits.length; i++) {
 		let unit_name = shop.equippedUnits[i];
@@ -750,10 +793,11 @@ function initMap() {
 
 
 class Race {
-	constructor(name, colour, areas) {
+	constructor(name, colour, areas, race_bonus) {
 		this.name = name;
 		this.colour = colour;
 		this.areas = areas;
+		this.race_bonus = race_bonus;
 	}
 }
 
@@ -792,13 +836,25 @@ function drawShop() {
 	drawText(gctx, 100, SHOP.UPGRADE.h + 35, "Money: "+shop.funds, "white", 30);
 }
 function drawUpgrades(x, y, w, h) {
-	drawText(gctx, x + w/2, y + h/6, "Upgrades", "white", 50);
+	let text_y = 20;
+	drawText(gctx, x + w/2, y + text_y, "Upgrades", "white", 30);
 	if (shop.displayedUnit !== undefined) {
-		drawText(gctx, x + w/2, y + h/4, shop.displayedUnit.name, "white", 30);
+		text_y += 30;
+		drawText(gctx, x + w/2, y + text_y, shop.displayedUnit.name, "white", 40);
+		text_y += 30;
 		//draw stats - really?
 		//draw upgrades
+		if (shop.displayedUnit.upgrades) {
+			let keys = Object.keys(shop.displayedUnit.upgrades);
+			for (let i = 0; i < keys.length; i++) {
+				let upgrade = shop.displayedUnit.upgrades[keys[i]];
+				drawRectangleWithText(gctx, x + w/2 - 150, y + text_y, 300, 20, "orange", upgrade.name +" ("+ upgrade.level +"/"+ upgrade.cost.length +") "+ upgrade.cost[Math.abs(upgrade.level)], "white", 20);
+				text_y += 25;
+			}
+		}
 		//draw equip button
 		let text;
+		let text_colour = "black";
 		if (shop.displayedUnit.bought) {
 			if (shop.equippedUnits.indexOf(shop.displayedUnit.id) === -1) {
 				text = "Equip";
@@ -807,8 +863,9 @@ function drawUpgrades(x, y, w, h) {
 			}
 		} else {
 			text = "Buy for " + shop.displayedUnit.price
+			if (shop.displayedUnit.price > shop.funds) text_colour = "red";
 		}
-		drawRectangleWithText(gctx, x + w - 200, y + h, 200, 50, "blue", text, "black", 30);
+		drawRectangleWithText(gctx, x + w - 200, y + h, 200, 50, "blue", text, text_colour, 30);
 	}
 }
 function drawHotbar(x, y, w, h) {
@@ -889,6 +946,7 @@ function drawBackground() {
 
 
 function drawUI() {
+	if (playerRaces.length < 2) return;
 	drawRectangle(gctx, 0, 0, gameScreen.width, 10, races[playerRaces[1]].colour);
 	drawRectangle(gctx, 0, 0, invasionProgress / 100 * gameScreen.width, 10, races[playerRaces[0]].colour);
 	let y = 0;
@@ -987,7 +1045,34 @@ function handleShopClick(subscreen, new_pos) {
 			shop.displayedUnit = shop.availableUnits[keys[i]];
 		}
 	} else if (subscreen === "UPGRADE") {
-		//blarg
+		let base_y = 80;
+		if (shop.displayedUnit && shop.displayedUnit.upgrades && shop.displayedUnit.bought) {
+			let keys = Object.keys(shop.displayedUnit.upgrades);
+			for (let i = 0; i < keys.length; i++) {
+				if (new_pos[0] > SHOP.UPGRADE.w/2 - 150 && new_pos[0] < SHOP.UPGRADE.w/2 + 150 && new_pos[1] >= base_y && new_pos[1] <= base_y+20) {
+					//clicked on this upgrade
+					let upgrade = shop.displayedUnit.upgrades[keys[i]];
+					if (upgrade.level < upgrade.cost.length && upgrade.cost[Math.abs(upgrade.level)] <= shop.funds) {
+						shop.funds -= upgrade.cost[Math.abs(upgrade.level)];
+						upgrade.level++;
+						if (keys[i] === "speed") {
+							shop.displayedUnit.speed *= upgrade.effect;
+						} else if (keys[i] === "cooldown") {
+							shop.displayedUnit.cooldown *= upgrade.effect;
+						} else if (keys[i].substr(0,9) === "maxDamage") {
+							shop.displayedUnit.attacks[upgrade.index].maxDamage *= upgrade.effect;
+						} else if (keys[i] === "range") {
+							for (let index = 0; index < shop.displayedUnit.attacks.length; index++) {
+								shop.displayedUnit.attacks[index].range *= upgrade.effect;
+							}
+							if (shop.displayedUnit.preferredRange) shop.displayedUnit.preferredRange *= upgrade.effect;
+						}
+					}
+					break;
+				}
+				base_y += 25;
+			}
+		}
 	} else if (subscreen === "NONE") {
 		if (shop.displayedUnit !== undefined && new_pos[0] > SHOP.UPGRADE.w - 200 && new_pos[0] < SHOP.UPGRADE.w && new_pos[1] > SHOP.UPGRADE.h && new_pos[1] < SHOP.UPGRADE.h + 50) {
 			//currently, we store the unit object. Would it be better to store the unit's id instead and always check whether it's in the keys of boughtUnits or availableUnits?
@@ -1085,7 +1170,7 @@ function drawLine(ctx, x1, y1, x2, y2, color) {
 
 function drawRectangleWithText(ctx, x, y, w, h, color_rect, text, color_text, size) {
 	drawRectangle(ctx, x, y, w, h, color_rect);
-	drawText(ctx, x + w/2, y + h/2, text, color_text, size);
+	drawText(ctx, x + w/2, y + h/2 + size/4, text, color_text, size);
 }
 
 function drawRectangle(ctx, x, y, w, h, color, hollow) {
